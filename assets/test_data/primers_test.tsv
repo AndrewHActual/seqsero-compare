@@ -1,0 +1,5 @@
+#name	fwd	rev
+#  Replace these with a handful of real panel primers that flank regions
+#  present in TEST01.fasta so cutadapt actually recovers amplicons.
+amp01	ACGTACGTACGTACGTACGT	TGCATGCATGCATGCATGCA
+amp02	GGATCCGGATCCGGATCCGG	CCTAGGCCTAGGCCTAGGCC

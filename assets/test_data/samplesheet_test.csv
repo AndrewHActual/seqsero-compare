@@ -1,0 +1,2 @@
+sample,amplicon_fastq_1,amplicon_fastq_2,assembly_fasta
+TEST01,assets/test_data/TEST01_R1.fastq.gz,assets/test_data/TEST01_R2.fastq.gz,assets/test_data/TEST01.fasta

@@ -1,0 +1,24 @@
+report_comment: >
+    This report summarizes SeqSero2 <em>Salmonella</em> serotype calls across
+    three data sources (amplicon reads, assembled genome, and in-silico
+    simulated amplicons) and their concordance.
+
+# Ensure our custom-content comparison table gets its own section and
+# appears near the top of the report.
+custom_content:
+    order:
+        - seqsero2_comparison
+
+module_order:
+    - custom_content
+    - cutadapt
+
+# cutadapt logs are picked up automatically by MultiQC's cutadapt module.
+sp:
+    cutadapt:
+        fn: "*_cutadapt.log"
+
+table_columns_visible:
+    seqsero2_comparison_table: true
+
+export_plots: true

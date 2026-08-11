@@ -1,0 +1,22 @@
+The `test` profile expects three small files under assets/test_data/:
+
+  - TEST01.fasta            a small Salmonella genome (or a subset of contigs
+                            large enough for SeqSero2 to call a serotype)
+  - TEST01_R1.fastq.gz      a small paired-end amplicon read set
+  - TEST01_R2.fastq.gz
+
+These are intentionally NOT invented here, because SeqSero2 needs biologically
+real sequence to produce a meaningful serotype call — random/placeholder
+sequence would give empty or misleading results and make the smoke test
+worthless. To populate them, options include:
+
+  1. Use a public Salmonella reference (e.g. an NCBI assembly) as TEST01.fasta,
+     subset to the loci your primer panel targets to keep it tiny.
+  2. Generate matched reads by running the cutadapt simulation step on that
+     FASTA, or with a read simulator (e.g. wgsim/art_illumina) over the
+     amplicon regions, then gzip them.
+  3. Put real panel primers that flank those loci into primers_test.tsv so the
+     simulated-amplicon path recovers sequence.
+
+For a pure "does the DAG wire up and run" check (not a serotype-accuracy
+check), any small real Salmonella FASTA plus its simulated reads is enough.
