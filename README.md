@@ -1,3 +1,4 @@
+
 # seqsero-compare
 
 An nf-core-style Nextflow pipeline that compares SeqSero2 *Salmonella*
@@ -27,8 +28,8 @@ concordance, and rolls the results into a MultiQC report.
                  └───────────────────────┘ │
                  ┌───────────────────────┐ │
  assembly fasta ─► SEQSERO2_ASSEMBLY      ─┼─► COMPARE_SEROTYPES ─► MULTIQC
-        │        └───────────────────────┘ │        ▲
-        │        ┌───────────────────────┐ │        │
+        │        └───────────────────────┘          ▲
+        │        ┌───────────────────────┐          │
         └───────► CUTADAPT_SIMULATE ──────►SEQSERO2_SIMULATED
                  └───────────────────────┘   (simulated amplicons)
 ```
@@ -51,9 +52,20 @@ SAL001,/data/SAL001_R1.fastq.gz,/data/SAL001_R2.fastq.gz,/data/SAL001.fasta
 
 ### Primer panel (`--primer_fasta`)
 
-A tab-separated file, one amplicon per line: `name<TAB>forward<TAB>reverse`.
+A tab-separated file with four columns: `category<TAB>forward<TAB>reverse<TAB>name`.
 The reverse primer is given 5'→3' as ordered; the pipeline reverse-complements
 it internally. Lines beginning with `#` are ignored.
+
+Only rows whose **category tag is `serotype`** are used for the amplicon
+simulation — primer pairs with any other category tag (e.g. `amr`) are ignored
+for this analysis. This lets you keep one master panel file and select just the
+serotyping primers here.
+
+```tsv
+#category  fwd                   rev                   name
+serotype   ACGT...               TGCA...               panel001
+amr        AAAA...               TTTT...               amr001   # ignored
+```
 
 ## Outputs
 
@@ -146,8 +158,12 @@ with panel data.
 **Amplicon simulation with cutadapt.** Simulation uses cutadapt's
 linked-adapter mode (`-g FWD...REVCOMP(REV)`) with `--discard-untrimmed`, so
 only sequence flanked by a matched primer pair survives — that is the
-in-silico amplicon. A shell loop reverse-complements each reverse primer
-(including IUPAC ambiguity codes) and builds one `-g` argument per pair.
+in-silico amplicon. The primer TSV is filtered to rows tagged `serotype`
+(other categories in a master panel file are skipped), then a shell loop
+reverse-complements each reverse primer (including IUPAC ambiguity codes) and
+builds one `-g` argument per pair. The process errors out if no `serotype`
+primers are found, so a mis-tagged or wrong-column file fails loudly rather
+than silently producing empty amplicons.
 
 > **Caveat:** plain cutadapt scans linearly and reports the first match per
 > pair per sequence. If your panel has many primers, or you need *every* hit
@@ -172,10 +188,12 @@ concordance table and amplicon-recovery stats in one place.
 - **SeqSero2 column headers** have shifted slightly between versions. The
   parser tries several aliases, but confirm against your installed 1.3.x
   output.
-- **Primers per amplicon.** The TSV format assumes one forward/reverse pair
-  per amplicon; if your panel design differs, adjust the parser and the
-  cutadapt module.
+- **Primers per amplicon.** The TSV format
+  (`category<TAB>fwd<TAB>rev<TAB>name`) assumes one forward/reverse pair per
+  row and filters to the `serotype` category. If your panel design differs
+  (multiple primers per amplicon, or a different serotyping tag), adjust the
+  parsing loop in `cutadapt_simulate.nf`.
 
 ## Tools
 
-SeqSero2 · cutadapt · MultiQC · Nextflow (DSL2)
+SeqSero2 · cutadapt · MultiQC · Nextflow (DSL2) · ClaudeAI

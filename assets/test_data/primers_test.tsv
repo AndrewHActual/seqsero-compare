@@ -1,5 +1,6 @@
-#name	fwd	rev
+#category	fwd	rev	name
 #  Replace these with a handful of real panel primers that flank regions
 #  present in TEST01.fasta so cutadapt actually recovers amplicons.
-amp01	ACGTACGTACGTACGTACGT	TGCATGCATGCATGCATGCA
-amp02	GGATCCGGATCCGGATCCGG	CCTAGGCCTAGGCCTAGGCC
+#  Only rows tagged "serotype" are used; other categories are ignored.
+serotype	ACGTACGTACGTACGTACGT	TGCATGCATGCATGCATGCA	amp01
+serotype	GGATCCGGATCCGGATCCGG	CCTAGGCCTAGGCCTAGGCC	amp02

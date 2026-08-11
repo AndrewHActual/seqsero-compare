@@ -2,7 +2,10 @@
  * Simulate amplicons from an assembled genome by using cutadapt to extract
  * the regions bounded by each forward/reverse primer pair (linked adapters).
  *
- * primer_pairs is a TSV with columns: name<TAB>fwd_seq<TAB>rev_seq
+ * primer_pairs is a TSV with columns: category<TAB>fwd<TAB>rev<TAB>name
+ * Only rows whose category tag is exactly "serotype" are used; all other
+ * categories are ignored for this analysis.
+ *
  * cutadapt's linked-adapter mode (-g FWD...REV_revcomp) keeps only the
  * sequence *between* matched primers when --discard-untrimmed is set,
  * which is what we treat as the in-silico amplicon.
@@ -28,17 +31,28 @@ process CUTADAPT_SIMULATE {
 
     script:
     """
-    # Build a linked-adapter argument list from the primer pair TSV.
-    # For each pair we generate: -g NAME=FWD...REVCOMP(REV)
+    # Build a linked-adapter argument list from the primer TSV.
+    # Columns: category <TAB> fwd <TAB> rev <TAB> name
+    # Only rows tagged "serotype" are included; other categories are skipped.
+    # For each kept pair we generate: -g NAME=FWD...REVCOMP(REV)
     # so cutadapt anchors on the forward primer and requires the
     # reverse-complemented reverse primer downstream.
     ADAPTERS=""
-    while IFS=\$'\\t' read -r name fwd rev; do
-        [ -z "\$name" ] && continue
-        case "\$name" in \\#*) continue ;; esac
+    while IFS=\$'\\t' read -r category fwd rev name; do
+        # Skip blank lines and comment lines.
+        [ -z "\$category" ] && continue
+        case "\$category" in \\#*) continue ;; esac
+        # Keep only serotyping primers.
+        [ "\$category" != "serotype" ] && continue
+        if [ -z "\$fwd" ] || [ -z "\$rev" ]; then continue; fi
         revc=\$(echo "\$rev" | rev | tr 'ACGTacgtRYKMBDHVrykmbdhv' 'TGCAtgcaYRMKVHDByrmkvhdb')
         ADAPTERS="\$ADAPTERS -g \${name}=\${fwd}...\${revc}"
     done < ${primer_pairs}
+
+    if [ -z "\$ADAPTERS" ]; then
+        echo "ERROR: no primers with category 'serotype' found in ${primer_pairs}" >&2
+        exit 1
+    fi
 
     cutadapt \\
         \$ADAPTERS \\
